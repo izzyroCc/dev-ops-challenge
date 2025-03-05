@@ -1,19 +1,19 @@
-FROM ruby:2.3
+FROM ruby:2.7
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    nodejs \
-    postgresql-client
+RUN apt-get update
+RUN apt-get install -y build-essential nodejs postgresql-client
 
 WORKDIR /app
 
 COPY Gemfile Gemfile.lock ./
+RUN bundle install --without development test
 
-RUN bundle install
+RUN bundle config set build.nokogiri --use-system-libraries
+
+RUN bundle install --jobs=4 --retry=3
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["rails", "server", "-b", "0.0.0.0"]
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
